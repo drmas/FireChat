@@ -20,7 +20,6 @@ export default class ForgetPassword extends Component {
     }
 
     render() {
-        console.log(Colors)
         return (
             <View style={styles.container}>
                 <TextField placeholder="Email" />

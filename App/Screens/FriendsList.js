@@ -7,43 +7,92 @@ import {
     ListView,
     Image
 } from 'react-native';
+const firebase = require("firebase");
+import Spinner from 'react-native-loading-spinner-overlay';
+import md5 from '../lib/md5'
+
 import { Colors, Styles } from '../Shared'
 
 import TextField from '../Components/TextField';
 import Button from '../Components/Button';
 import Separator from '../Components/Separator';
 
+var navigator;
+
 export default class FriendsList extends Component {
 
     constructor(props) {
         super(props);
-        const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
         this.state = {
-            dataSource: ds.cloneWithRows([
-                'John', 'Joel', 'James', 'Jimmy', 'Jackson', 'Jillian', 'Julie', 'Devin'
-            ])
+            dataSource: new ListView.DataSource({
+                rowHasChanged: (row1, row2) => row1 !== row2,
+            }),
+            loading: true 
         };
+        this.friendsRef = this.getRef().child('friends');
+
+        navigator = this.props.navigator
+    }
+
+    getRef() {
+        return firebase.database().ref();
+    }
+
+    listenForItems(friendsRef) {
+        var user = firebase.auth().currentUser;
+
+        friendsRef.on('value', (snap) => {
+
+            // get children as an array
+            var items = [];
+            snap.forEach((child) => {
+                if(child.val().email != user.email)
+                    items.push({
+                        name: child.val().name,
+                        uid: child.val().uid,
+                        email: child.val().email
+                    });
+            });
+            
+            this.setState({
+                dataSource: this.state.dataSource.cloneWithRows(items),
+                loading: false
+            });
+
+        });
+    }
+
+    componentDidMount() {
+        this.listenForItems(this.friendsRef);
     }
 
     static route = {
         navigationBar: {
             title: 'Friends List',
             ... Styles.NavBarStyles,
-            renderRight: (route, props) => <Button primary style={styles.rightButton}>Log out</Button>
+            renderRight: (route, props) => <Button primary
+                style={styles.rightButton}
+                onPress={() => {
+                    firebase.auth().signOut().then(() => {
+                        navigator.pop();
+                    }, function (error) {
+                        // An error happened.
+                    });
+                } }>Log out</Button>
         }
     }
 
+
     renderRow = (rowData) => {
-        return <TouchableOpacity onPress={()=> this.props.navigator.push('chat')}>
+        return <TouchableOpacity onPress={() => this.props.navigator.push('chat', {friend: rowData}) }>
             <View style={styles.profileContainer}>
-                <Image source={{uri: 'https://lh3.googleusercontent.com/-RZkCJ8ZBI0o/AAAAAAAAAAI/AAAAAAAAAAA/a7-CJ_O0tjU/s46-c-k-no/photo.jpg'}} style={styles.profileImage}/>
-                <Text style={styles.profileName}>{rowData}</Text>
+                <Image source={{ uri: 'https://www.gravatar.com/avatar/' + md5(rowData.email) }} style={styles.profileImage}/>
+                <Text style={styles.profileName}>{rowData.name}</Text>
             </View>
         </TouchableOpacity>
     }
 
     render() {
-        console.log(Colors)
         return (
             <View style={styles.container}>
                 <View style={styles.topGroup}>
@@ -55,6 +104,7 @@ export default class FriendsList extends Component {
                 <ListView
                     dataSource={this.state.dataSource}
                     renderRow={this.renderRow} />
+                <Spinner visible={this.state.loading} />
             </View>
         );
     }
@@ -100,7 +150,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         marginLeft: 6
     },
-    profileName:{
+    profileName: {
         marginLeft: 6,
         fontSize: 16
     }

@@ -11,6 +11,17 @@ import {
   View,
   StatusBar
 } from 'react-native';
+const firebase = require("firebase");
+
+// Initialize Firebase
+var config = {
+  apiKey: "AIzaSyCeA4jrsADE9EMjlTWsWIQRNb0MkyOacbA",
+  authDomain: "hashapps-mobilebe-test.firebaseapp.com",
+  databaseURL: "https://hashapps-mobilebe-test.firebaseio.com",
+  storageBucket: "hashapps-mobilebe-test.appspot.com",
+  messagingSenderId: "552571618641"
+};
+firebase.initializeApp(config);
 
 import {
   createRouter,
@@ -34,16 +45,16 @@ const Router = createRouter(() => ({
   signup: () => Signup,
   forgetPassword: () => ForgetPassword,
   friendsList: () => FriendsList,
-  chat: ()=> Chat
+  chat: () => Chat
 }));
 
 export default class Firechat extends Component {
   render() {
     return (
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         <StatusBar barStyle="light-content"/>
         <NavigationProvider router={Router}>
-          <StackNavigation initialRoute={Router.getRoute('login')} />
+          <StackNavigation initialRoute={Router.getRoute('login') } />
         </NavigationProvider>
       </View>
     );

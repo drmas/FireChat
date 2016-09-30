@@ -11,6 +11,7 @@
     "firebase": "^3.4.0",
     "react": "15.3.2",
     "react-native": "0.34.0",
-    "react-native-gifted-chat": "0.0.10"
+    "react-native-gifted-chat": "0.0.10",
+    "react-native-loading-spinner-overlay": "^0.3.0"
   }
 }
