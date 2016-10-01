@@ -11,6 +11,13 @@ An example how to use React Native + Firebase to create a messaging app
 
 ![alt Firechat preview](https://github.com/drmas/FireChat/raw/master/design/preview.gif)
 
+#### How to run:
+
+- Clone the repo: `git clone git@github.com:drmas/FireChat.git`
+- Install the dependencies using `npm install`
+- To run on iOS use `react-native run-ios`
+- To run on Android use `react-native run-android` or use the APK link below
+
 ##### You can try the finial app on your Android Device using this link:
 [Link to Android APK](https://www.google.com)
 
