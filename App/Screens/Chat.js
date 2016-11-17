@@ -5,10 +5,11 @@ import {
     StyleSheet
 } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
-const firebase = require("firebase");
 import md5 from '../lib/md5'
 
 import { Colors, Styles } from '../Shared'
+
+import firestack from '../lib/Firestack';
 
 import TextField from '../Components/TextField';
 import Button from '../Components/Button';
@@ -21,16 +22,6 @@ export default class Chat extends Component {
         this.state = {
             messages: []
         };
-
-        this.user = firebase.auth().currentUser
-        this.friend = this.props.friend
-
-        
-
-        this.chatRef = this.getRef().child('chat/' + this.generateChatId());
-        this.chatRefData = this.chatRef.orderByChild('order')
-        this.onSend = this.onSend.bind(this);
-
     }
 
     generateChatId() {
@@ -48,23 +39,29 @@ export default class Chat extends Component {
     }
 
     getRef() {
-        return firebase.database().ref();
+        return firestack.database.ref();
     }
 
     listenForItems(chatRef) {
-        chatRef.on('value', (snap) => {
-
+        chatRef.on('value', ({value}) => {
+            if(!value) {
+                return this.setState({
+                    loading: false,
+                    messages: []
+                });
+            }
             // get children as an array
             var items = [];
-            snap.forEach((child) => {
-                var avatar = 'https://www.gravatar.com/avatar/' + ( child.val().uid == this.user.uid? md5(this.user.email) : md5(this.friend.email))
-                var name = child.val().uid == this.user.uid? this.user.name: this.friend.name
+            Object.keys(value).forEach((key) => {
+                const child = value[key];
+                var avatar = 'https://www.gravatar.com/avatar/' + ( child.uid == this.user.uid? md5(this.user.email) : md5(this.friend.email))
+                var name = child.uid == this.user.uid? this.user.name: this.friend.name
                 items.push({
-                    _id: child.val().createdAt,
-                    text: child.val().text,
-                    createdAt: new Date(child.val().createdAt),
+                    _id: child.createdAt,
+                    text: child.text,
+                    createdAt: new Date(child.createdAt),
                     user: {
-                        _id: child.val().uid,
+                        _id: child.uid,
                         avatar: avatar
                     }
                 });
@@ -79,7 +76,13 @@ export default class Chat extends Component {
         });
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        this.user = await firestack.auth.getCurrentUser();
+        this.friend = this.props.friend;
+
+        this.chatRef = this.getRef().child('chat/' + this.generateChatId());
+        this.chatRefData = this.chatRef.orderByChild('order')
+        this.onSend = this.onSend.bind(this);
         this.listenForItems(this.chatRefData);
     }
 
@@ -110,7 +113,7 @@ export default class Chat extends Component {
                 messages={this.state.messages}
                 onSend={this.onSend.bind(this)}
                 user={{
-                    _id: this.user.uid,
+                    _id: this.user ? this.user.uid : '',
                 }}
                 />
         );

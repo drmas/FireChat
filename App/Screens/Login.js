@@ -4,34 +4,16 @@ import {
     Text,
     StyleSheet
 } from 'react-native';
-const firebase = require("firebase");
 import Spinner from 'react-native-loading-spinner-overlay';
-
 import { Colors, Styles } from '../Shared'
 
 import TextField from '../Components/TextField';
 import Button from '../Components/Button';
 import Separator from '../Components/Separator';
 
+import firestack from '../lib/Firestack';
+
 export default class Login extends Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            email: '',
-            password: '',
-            errorMessage: null
-        }
-
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                this.props.navigator.push('friendsList')
-                this.setState({
-                    loading: false
-                })
-            }
-        });
-    }
 
     static route = {
         navigationBar: {
@@ -40,18 +22,49 @@ export default class Login extends Component {
         }
     }
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            email: '',
+            password: '',
+            errorMessage: null
+        }
+    }
+
+    componentDidMount() {
+        firestack.auth.listenForAuth((evt) => {
+            // evt is the authentication event
+            // it contains an `error` key for carrying the
+            // error message in case of an error
+            // and a `user` key upon successful authentication
+            if (!evt.authenticated) {
+                // There was an error or there is no user
+                console.log(evt.error)
+            } else {
+                // evt.user contains the user details
+                this.props.navigator.push('friendsList')
+                this.setState({
+                    loading: false
+                })
+            }
+        })
+            .then(() => console.log('Listening for authentication changes'))
+    }
+
+    componentWillMount() {
+        firestack.auth.unlistenForAuth();
+    }
+
     login = () => {
         this.setState({
             errorMessage: null,
             loading: true 
         })
         const {email, password} = this.state;
-        firebase.auth()
-            .signInWithEmailAndPassword(email, password)
+        firestack.auth.signInWithEmail(email, password)
             .catch((error) => {
                 // Handle Errors here.
-                var errorCode = error.code;
-                var errorMessage = error.message;
+                var errorMessage = error.rawDescription;
                 this.setState({
                     errorMessage,
                     loading: false

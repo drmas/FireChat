@@ -7,15 +7,13 @@ import {
     ListView,
     Image
 } from 'react-native';
-const firebase = require("firebase");
 import Spinner from 'react-native-loading-spinner-overlay';
 import md5 from '../lib/md5'
 
 import { Colors, Styles } from '../Shared'
 
-import TextField from '../Components/TextField';
 import Button from '../Components/Button';
-import Separator from '../Components/Separator';
+import firestack from '../lib/Firestack';
 
 var navigator;
 
@@ -35,22 +33,22 @@ export default class FriendsList extends Component {
     }
 
     getRef() {
-        return firebase.database().ref();
+        return firestack.database.ref();
     }
 
-    listenForItems(friendsRef) {
-        var user = firebase.auth().currentUser;
+    async listenForItems(friendsRef) {
 
-        friendsRef.on('value', (snap) => {
+        var user = await firestack.auth.getCurrentUser();
 
-            // get children as an array
+        friendsRef.on('value', ({value}) => {
             var items = [];
-            snap.forEach((child) => {
-                if(child.val().email != user.email)
+            Object.keys(value).forEach((key) => {
+                const child = value[key];
+                if(child.email != user.email)
                     items.push({
-                        name: child.val().name,
-                        uid: child.val().uid,
-                        email: child.val().email
+                        name: child.name,
+                        uid: child.uid,
+                        email: child.email
                     });
             });
             
