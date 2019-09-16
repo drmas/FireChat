@@ -6,7 +6,7 @@
     "start": "node node_modules/react-native/local-cli/cli.js start"
   },
   "dependencies": {
-    "@exponent/ex-navigation": "^1.5.29",
+    "@exponent/ex-navigation": "^2.9.1",
     "babel-preset-react-native-stage-0": "^1.0.1",
     "firebase": "^3.4.0",
     "react": "15.3.2",
