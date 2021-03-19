@@ -8,7 +8,7 @@
   "dependencies": {
     "@exponent/ex-navigation": "^1.5.29",
     "babel-preset-react-native-stage-0": "^1.0.1",
-    "firebase": "^3.4.0",
+    "firebase": "^8.3.1",
     "react": "15.3.2",
     "react-native": "0.34.0",
     "react-native-gifted-chat": "0.0.10",
